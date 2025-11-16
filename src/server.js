@@ -89,11 +89,12 @@ app.use((req, res) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-
-const server = app.listen(PORT, () => {
-    console.log(`
+// Only start server if not in serverless environment (Vercel)
+if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+    const PORT = process.env.PORT || 5000;
+    
+    const server = app.listen(PORT, () => {
+        console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║                                                            ║
 ║   🚀 OneStop Kenya API Server                             ║
@@ -106,22 +107,21 @@ const server = app.listen(PORT, () => {
 ║   📍 Health Check: http://localhost:${PORT}/health            ║
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
-    `);
-});
+        `);
+    });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-    console.log(`Error: ${err.message}`);
-    // Close server & exit process
-    server.close(() => process.exit(1));
-});
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', (err, promise) => {
+        console.log(`Error: ${err.message}`);
+        server.close(() => process.exit(1));
+    });
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-    console.log(`Error: ${err.message}`);
-    // Close server & exit process
-    server.close(() => process.exit(1));
-});
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (err) => {
+        console.log(`Error: ${err.message}`);
+        server.close(() => process.exit(1));
+    });
+}
 
 module.exports = app;
 
