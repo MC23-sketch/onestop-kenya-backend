@@ -1,0 +1,201 @@
+const Product = require('../models/Product');
+const Category = require('../models/Category');
+const { paginate, buildSearchQuery, generateSKU } = require('../utils/helpers');
+
+// @desc    Get all products
+// @route   GET /api/products
+// @access  Public
+exports.getProducts = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 20, category, search, featured, inStock, sort = '-createdAt' } = req.query;
+
+        // Build query
+        let query = { isActive: true };
+
+        if (category) {
+            query.category = category;
+        }
+
+        if (featured === 'true') {
+            query.featured = true;
+        }
+
+        if (inStock === 'true') {
+            query.inStock = true;
+        }
+
+        if (search) {
+            const searchQuery = buildSearchQuery(['name', 'description', 'tags'], search);
+            query = { ...query, ...searchQuery };
+        }
+
+        // Execute query with pagination
+        const products = await Product.find(query)
+            .populate('category', 'name slug')
+            .sort(sort)
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        const total = await Product.countDocuments(query);
+
+        res.json({
+            success: true,
+            count: products.length,
+            total,
+            page: parseInt(page),
+            pages: Math.ceil(total / limit),
+            data: products
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get single product
+// @route   GET /api/products/:id
+// @access  Public
+exports.getProduct = async (req, res, next) => {
+    try {
+        const product = await Product.findById(req.params.id).populate('category');
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: product
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Create product
+// @route   POST /api/products
+// @access  Private
+exports.createProduct = async (req, res, next) => {
+    try {
+        // Get category for SKU generation
+        const category = await Category.findById(req.body.category);
+        
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found'
+            });
+        }
+
+        // Generate SKU if not provided
+        if (!req.body.sku) {
+            req.body.sku = generateSKU(req.body.name, category.name);
+        }
+
+        // Handle uploaded images
+        if (req.files && req.files.length > 0) {
+            req.body.images = req.files.map(file => `/uploads/products/${file.filename}`);
+        }
+
+        const product = await Product.create(req.body);
+
+        res.status(201).json({
+            success: true,
+            data: product
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Update product
+// @route   PUT /api/products/:id
+// @access  Private
+exports.updateProduct = async (req, res, next) => {
+    try {
+        // Handle uploaded images
+        if (req.files && req.files.length > 0) {
+            const newImages = req.files.map(file => `/uploads/products/${file.filename}`);
+            req.body.images = [...(req.body.images || []), ...newImages];
+        }
+
+        const product = await Product.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: product
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Delete product
+// @route   DELETE /api/products/:id
+// @access  Private
+exports.deleteProduct = async (req, res, next) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        // Soft delete - just mark as inactive
+        product.isActive = false;
+        await product.save();
+
+        res.json({
+            success: true,
+            message: 'Product deleted successfully'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Update product stock
+// @route   PATCH /api/products/:id/stock
+// @access  Private
+exports.updateStock = async (req, res, next) => {
+    try {
+        const { stock } = req.body;
+
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        product.stock = stock;
+        product.inStock = stock > 0;
+        await product.save();
+
+        res.json({
+            success: true,
+            data: product
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
