@@ -42,6 +42,12 @@ const connectDatabase = async () => {
                 try {
                     const seedAdmin = require('../src/utils/seedAdmin');
                     await seedAdmin();
+                    
+                    // Remove test products (one-time cleanup)
+                    if (process.env.REMOVE_TEST_PRODUCTS === 'true' || process.env.NODE_ENV === 'production') {
+                        const removeTestProducts = require('../src/utils/removeTestProducts');
+                        await removeTestProducts();
+                    }
                 } catch (seedError) {
                     console.error('Seed admin error (non-critical):', seedError.message);
                 }

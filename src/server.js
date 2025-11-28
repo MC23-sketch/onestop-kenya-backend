@@ -20,6 +20,12 @@ connectDB().then(async () => {
         // Wait a bit for DB to be fully ready
         setTimeout(async () => {
             await seedAdmin();
+            
+            // Remove test products (one-time cleanup)
+            if (process.env.REMOVE_TEST_PRODUCTS === 'true' || process.env.NODE_ENV === 'production') {
+                const removeTestProducts = require('./utils/removeTestProducts');
+                await removeTestProducts();
+            }
         }, 2000);
     }
 }).catch(err => {
