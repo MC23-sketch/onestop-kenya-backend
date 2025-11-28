@@ -9,33 +9,48 @@ if (!cached) {
 
 const connectDB = async () => {
     // If already connected, return existing connection
-    if (cached.conn) {
+    if (cached.conn && mongoose.connection.readyState === 1) {
         return cached.conn;
     }
 
     // If connection is in progress, wait for it
     if (!cached.promise) {
         const opts = {
-            bufferCommands: false,
+            bufferCommands: true, // Enable buffering for serverless
             maxPoolSize: 10,
-            serverSelectionTimeoutMS: 5000,
+            serverSelectionTimeoutMS: 10000, // Increased timeout
             socketTimeoutMS: 45000,
+            connectTimeoutMS: 10000,
         };
+
+        if (!process.env.MONGODB_URI) {
+            throw new Error('MONGODB_URI is not defined in environment variables');
+        }
 
         cached.promise = mongoose.connect(process.env.MONGODB_URI, opts).then((mongoose) => {
             console.log('✅ MongoDB Connected');
+            cached.conn = mongoose;
             return mongoose;
         }).catch((error) => {
             console.error(`❌ Error connecting to MongoDB: ${error.message}`);
             cached.promise = null;
+            cached.conn = null;
             throw error;
         });
     }
 
     try {
         cached.conn = await cached.promise;
+        // Verify connection is still active
+        if (mongoose.connection.readyState !== 1) {
+            // Connection lost, reset and reconnect
+            cached.conn = null;
+            cached.promise = null;
+            return connectDB();
+        }
     } catch (e) {
         cached.promise = null;
+        cached.conn = null;
         throw e;
     }
 
