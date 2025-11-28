@@ -28,7 +28,7 @@ const adminSchema = new mongoose.Schema({
     },
     permissions: [{
         type: String,
-        enum: ['products', 'orders', 'customers', 'categories', 'analytics', 'settings']
+        enum: ['products', 'orders', 'customers', 'categories', 'analytics', 'settings', 'users']
     }],
     isActive: {
         type: Boolean,

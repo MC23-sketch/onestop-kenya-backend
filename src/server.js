@@ -13,7 +13,18 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 
 // Connect to database
-connectDB();
+connectDB().then(async () => {
+    // Seed default admin user if needed (only in production or when enabled)
+    if (process.env.NODE_ENV === 'production' || process.env.AUTO_SEED === 'true') {
+        const seedAdmin = require('./utils/seedAdmin');
+        // Wait a bit for DB to be fully ready
+        setTimeout(async () => {
+            await seedAdmin();
+        }, 2000);
+    }
+}).catch(err => {
+    console.error('Database connection failed:', err);
+});
 
 // Security middleware
 app.use(helmet());

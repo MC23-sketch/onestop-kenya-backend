@@ -34,6 +34,19 @@ const connectDatabase = async () => {
         await connectDB();
         dbConnected = true;
         console.log('✅ Database connection established');
+        
+        // Seed default admin user if needed (only in production or when enabled)
+        if (process.env.NODE_ENV === 'production' || process.env.AUTO_SEED === 'true') {
+            // Wait a bit for DB to be fully ready, then seed
+            setTimeout(async () => {
+                try {
+                    const seedAdmin = require('../src/utils/seedAdmin');
+                    await seedAdmin();
+                } catch (seedError) {
+                    console.error('Seed admin error (non-critical):', seedError.message);
+                }
+            }, 3000);
+        }
     } catch (error) {
         console.error('❌ Database connection error:', error);
         dbConnected = false;
