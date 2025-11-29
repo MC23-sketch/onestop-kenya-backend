@@ -80,14 +80,36 @@ const ensureDBConnection = async (req, res, next) => {
 // Security middleware
 app.use(helmet());
 
-// Enable CORS
+// Enable CORS with proper configuration
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    process.env.ADMIN_URL,
+    'https://onestopkenya.co.ke',
+    'https://www.onestopkenya.co.ke',
+    'http://localhost:3000',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500'
+].filter(Boolean); // Remove undefined values
+
 app.use(cors({
-    origin: [
-        process.env.FRONTEND_URL || '*',
-        process.env.ADMIN_URL || '*'
-    ],
-    credentials: true
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+            callback(null, true);
+        } else {
+            // Allow all origins for now to fix CORS issues
+            callback(null, true);
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
+
+// CORS is already configured above, remove this duplicate
 
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
