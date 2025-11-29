@@ -122,6 +122,7 @@ app.use('/api/orders', ensureDBConnection, require('../src/routes/orders'));
 app.use('/api/customers', ensureDBConnection, require('../src/routes/customers'));
 app.use('/api/product-requests', ensureDBConnection, require('../src/routes/productRequests'));
 app.use('/api/payments', ensureDBConnection, require('../src/routes/payments'));
+app.use('/api/ai', ensureDBConnection, require('../src/routes/ai'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

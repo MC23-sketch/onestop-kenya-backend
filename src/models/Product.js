@@ -40,6 +40,14 @@ const productSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    spotlight: {
+        type: Boolean,
+        default: false
+    },
+    spotlightOrder: {
+        type: Number,
+        default: 0
+    },
     inStock: {
         type: Boolean,
         default: true

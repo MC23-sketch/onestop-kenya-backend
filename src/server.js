@@ -75,6 +75,7 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/customers', require('./routes/customers'));
 app.use('/api/product-requests', require('./routes/productRequests'));
 app.use('/api/payments', require('./routes/payments'));
+app.use('/api/ai', require('./routes/ai'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

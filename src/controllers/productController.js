@@ -7,7 +7,7 @@ const { paginate, buildSearchQuery, generateSKU } = require('../utils/helpers');
 // @access  Public
 exports.getProducts = async (req, res, next) => {
     try {
-        const { page = 1, limit = 20, category, search, featured, inStock, sort = '-createdAt' } = req.query;
+        const { page = 1, limit = 20, category, search, featured, spotlight, inStock, sort = '-createdAt' } = req.query;
 
         // Build query
         let query = { isActive: true };
@@ -20,6 +20,10 @@ exports.getProducts = async (req, res, next) => {
             query.featured = true;
         }
 
+        if (spotlight === 'true') {
+            query.spotlight = true;
+        }
+
         if (inStock === 'true') {
             query.inStock = true;
         }
@@ -30,9 +34,15 @@ exports.getProducts = async (req, res, next) => {
         }
 
         // Execute query with pagination
+        let sortQuery = sort;
+        if (spotlight === 'true') {
+            // Sort by spotlightOrder first, then by the provided sort
+            sortQuery = 'spotlightOrder createdAt';
+        }
+        
         const products = await Product.find(query)
             .populate('category', 'name slug')
-            .sort(sort)
+            .sort(sortQuery)
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
 
