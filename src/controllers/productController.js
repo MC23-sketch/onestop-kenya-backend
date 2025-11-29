@@ -24,6 +24,14 @@ exports.getProducts = async (req, res, next) => {
             query.spotlight = true;
         }
 
+        if (req.query.topSeller === 'true') {
+            query.topSeller = true;
+        }
+
+        if (req.query.bestSeller === 'true') {
+            query.bestSeller = true;
+        }
+
         if (inStock === 'true') {
             query.inStock = true;
         }

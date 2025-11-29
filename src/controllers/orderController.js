@@ -115,11 +115,14 @@ exports.createOrder = async (req, res, next) => {
             shippingMethod: req.body.shippingMethod || 'standard'
         });
 
-        // Update product stock
+        // Update product stock and sales count
         await Promise.all(
             items.map(async (item) => {
                 await Product.findByIdAndUpdate(item.product, {
-                    $inc: { stock: -item.quantity }
+                    $inc: { 
+                        stock: -item.quantity,
+                        salesCount: item.quantity
+                    }
                 });
             })
         );

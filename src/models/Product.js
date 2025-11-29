@@ -48,6 +48,19 @@ const productSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    topSeller: {
+        type: Boolean,
+        default: false
+    },
+    bestSeller: {
+        type: Boolean,
+        default: false
+    },
+    salesCount: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
     inStock: {
         type: Boolean,
         default: true
