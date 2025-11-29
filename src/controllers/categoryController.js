@@ -60,8 +60,17 @@ exports.getCategory = async (req, res, next) => {
 // @access  Private
 exports.createCategory = async (req, res, next) => {
     try {
-        // Handle uploaded image
-        if (req.file) {
+        // Handle image - can be base64 string or file path
+        if (req.body.image) {
+            // If it's a base64 string, keep it as is (will be stored in DB)
+            if (typeof req.body.image === 'string' && req.body.image.startsWith('data:image')) {
+                // Keep base64 string
+            } else if (req.file) {
+                // Fallback: handle multer file upload (for local development)
+                req.body.image = `/uploads/categories/${req.file.filename}`;
+            }
+        } else if (req.file) {
+            // Fallback: handle multer file upload (for local development)
             req.body.image = `/uploads/categories/${req.file.filename}`;
         }
 
@@ -81,8 +90,17 @@ exports.createCategory = async (req, res, next) => {
 // @access  Private
 exports.updateCategory = async (req, res, next) => {
     try {
-        // Handle uploaded image
-        if (req.file) {
+        // Handle image - can be base64 string or file path
+        if (req.body.image) {
+            // If it's a base64 string, keep it as is (will be stored in DB)
+            if (typeof req.body.image === 'string' && req.body.image.startsWith('data:image')) {
+                // Keep base64 string
+            } else if (req.file) {
+                // Fallback: handle multer file upload (for local development)
+                req.body.image = `/uploads/categories/${req.file.filename}`;
+            }
+        } else if (req.file) {
+            // Fallback: handle multer file upload (for local development)
             req.body.image = `/uploads/categories/${req.file.filename}`;
         }
 

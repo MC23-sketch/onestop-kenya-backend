@@ -14,11 +14,11 @@ const { productValidation, validate } = require('../middleware/validation');
 
 router.route('/')
     .get(getProducts)
-    .post(protect, authorize('products'), uploadProductImages, productValidation, validate, createProduct);
+    .post(protect, authorize('products'), productValidation, validate, createProduct);
 
 router.route('/:id')
     .get(getProduct)
-    .put(protect, authorize('products'), uploadProductImages, updateProduct)
+    .put(protect, authorize('products'), updateProduct)
     .delete(protect, authorize('products'), deleteProduct);
 
 router.patch('/:id/stock', protect, authorize('products'), updateStock);

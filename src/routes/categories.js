@@ -14,11 +14,11 @@ const { categoryValidation, validate } = require('../middleware/validation');
 
 router.route('/')
     .get(getCategories)
-    .post(protect, authorize('categories'), uploadCategoryImage, categoryValidation, validate, createCategory);
+    .post(protect, authorize('categories'), categoryValidation, validate, createCategory);
 
 router.route('/:id')
     .get(getCategory)
-    .put(protect, authorize('categories'), uploadCategoryImage, updateCategory)
+    .put(protect, authorize('categories'), updateCategory)
     .delete(protect, authorize('categories'), deleteCategory);
 
 router.patch('/:id/visibility', protect, authorize('categories'), updateVisibility);

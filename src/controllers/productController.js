@@ -112,8 +112,20 @@ exports.createProduct = async (req, res, next) => {
             req.body.sku = generateSKU(req.body.name, category.name);
         }
 
-        // Handle uploaded images
-        if (req.files && req.files.length > 0) {
+        // Handle images - can be base64 strings or file paths
+        if (req.body.images && Array.isArray(req.body.images)) {
+            // If images are base64 strings, keep them as is (will be stored in DB)
+            // If they're file paths, keep them as is
+            req.body.images = req.body.images.map(img => {
+                // If it's a base64 string, keep it
+                if (typeof img === 'string' && img.startsWith('data:image')) {
+                    return img;
+                }
+                // If it's a file path from multer, use it
+                return img;
+            });
+        } else if (req.files && req.files.length > 0) {
+            // Fallback: handle multer file uploads (for local development)
             req.body.images = req.files.map(file => `/uploads/products/${file.filename}`);
         }
 
@@ -138,10 +150,33 @@ exports.createProduct = async (req, res, next) => {
 // @access  Private
 exports.updateProduct = async (req, res, next) => {
     try {
-        // Handle uploaded images
-        if (req.files && req.files.length > 0) {
+        // Get existing product to preserve images if not provided
+        const existingProduct = await Product.findById(req.params.id);
+        if (!existingProduct) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+        
+        // Handle images - can be base64 strings or file paths
+        if (req.body.images && Array.isArray(req.body.images)) {
+            // Process images array
+            req.body.images = req.body.images.map(img => {
+                // If it's a base64 string, keep it
+                if (typeof img === 'string' && img.startsWith('data:image')) {
+                    return img;
+                }
+                // If it's a file path, keep it
+                return img;
+            });
+        } else if (req.files && req.files.length > 0) {
+            // Fallback: handle multer file uploads (for local development)
             const newImages = req.files.map(file => `/uploads/products/${file.filename}`);
-            req.body.images = [...(req.body.images || []), ...newImages];
+            req.body.images = [...(existingProduct.images || []), ...newImages];
+        } else {
+            // No images provided in request, preserve existing images
+            req.body.images = existingProduct.images || [];
         }
 
         const product = await Product.findByIdAndUpdate(
