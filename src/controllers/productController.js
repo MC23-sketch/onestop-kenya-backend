@@ -109,6 +109,11 @@ exports.createProduct = async (req, res, next) => {
             req.body.images = req.files.map(file => `/uploads/products/${file.filename}`);
         }
 
+        // Ensure inStock is set based on stock if not explicitly provided
+        if (req.body.stock !== undefined && req.body.inStock === undefined) {
+            req.body.inStock = req.body.stock > 0;
+        }
+
         const product = await Product.create(req.body);
 
         res.status(201).json({

@@ -86,6 +86,14 @@ const productSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Auto-set inStock based on stock quantity before saving
+productSchema.pre('save', function(next) {
+    if (this.isModified('stock') || this.isNew) {
+        this.inStock = this.stock > 0;
+    }
+    next();
+});
+
 // Indexes for better query performance
 productSchema.index({ name: 'text', description: 'text' });
 productSchema.index({ category: 1, isActive: 1 });
