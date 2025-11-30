@@ -30,6 +30,15 @@ const adminSchema = new mongoose.Schema({
         type: String,
         enum: ['products', 'orders', 'customers', 'categories', 'analytics', 'settings', 'users']
     }],
+    whatsappNumber: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    whatsappNotifications: {
+        type: Boolean,
+        default: false
+    },
     isActive: {
         type: Boolean,
         default: true

@@ -23,7 +23,9 @@ exports.register = async (req, res, next) => {
             email,
             password,
             role: role || 'admin',
-            permissions: ['products', 'orders', 'customers', 'categories']
+            permissions: ['products', 'orders', 'customers', 'categories'],
+            whatsappNumber: req.body.whatsappNumber || '',
+            whatsappNotifications: req.body.whatsappNotifications || false
         });
 
         // Generate token

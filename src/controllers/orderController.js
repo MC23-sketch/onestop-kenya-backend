@@ -1,8 +1,10 @@
 const Order = require('../models/Order');
 const Customer = require('../models/Customer');
 const Product = require('../models/Product');
+const Admin = require('../models/Admin');
 const { calculateOrderTotals } = require('../utils/helpers');
 const { sendOrderConfirmation, sendOrderStatusUpdate } = require('../utils/email');
+const { sendWhatsAppNotification } = require('../utils/whatsapp');
 
 // @desc    Get all orders
 // @route   GET /api/orders
@@ -151,6 +153,36 @@ exports.createOrder = async (req, res, next) => {
 
         // Send order confirmation email
         await sendOrderConfirmation(order);
+
+        // Send WhatsApp notifications to admins
+        try {
+            const adminsToNotify = await Admin.find({
+                whatsappNotifications: true,
+                whatsappNumber: { $ne: '', $exists: true },
+                isActive: true
+            }).select('whatsappNumber');
+            
+            if (adminsToNotify.length > 0) {
+                const phoneNumbers = adminsToNotify
+                    .map(admin => admin.whatsappNumber)
+                    .filter(phone => phone && phone.trim() !== '');
+                
+                if (phoneNumbers.length > 0) {
+                    // Send notifications asynchronously (don't wait)
+                    sendWhatsAppNotification(phoneNumbers, order).catch(err => {
+                        console.error('WhatsApp notification error:', err);
+                        // Don't fail the order creation if WhatsApp fails
+                    });
+                }
+            }
+        } catch (whatsappError) {
+            console.error('Error sending WhatsApp notifications:', whatsappError);
+            // Don't fail the order creation if WhatsApp fails
+        }
+
+        // Emit notification event (for real-time notifications)
+        // In production, use WebSockets or Server-Sent Events
+        // For now, order will be picked up by admin notification polling
 
         res.status(201).json({
             success: true,

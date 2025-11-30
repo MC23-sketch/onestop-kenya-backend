@@ -89,7 +89,8 @@ app.use('/api/', limiter);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // API Routes
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', require('./routes/auth')); // Admin auth
+app.use('/api/customer-auth', require('./routes/customerAuth')); // Customer auth
 app.use('/api/products', require('./routes/products'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/orders', require('./routes/orders'));
